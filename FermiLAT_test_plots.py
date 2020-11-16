@@ -9,11 +9,13 @@ import timeit
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import pandas as pd
 from astropy.io import fits
+from astropy.table import Table
 
 start = timeit.default_timer() 
 
-f_lat_data = fits.open('gll_psc_v22.fit')
+f_lat_data = fits.open('gll_psc_v24.fit')
 
 sources = f_lat_data[1].data
 
@@ -25,7 +27,7 @@ bands = np.array([0.05, 0.1, 0.3, 1, 3, 10, 30, 300])
 with open(filename, 'wb') as dump_pkl:
     pickle.dump(bands, dump_pkl)
     '''
-
+''' -----------------------PLOT ENERGY SPECTRA ----------------------------------------'''
 x = np.empty([7])
 
 for i in range(x.size):
@@ -66,15 +68,18 @@ plt.tight_layout()
 plt.savefig('Spectral_Fits_Visualisation', dpi=300)
 plt.show()
 
+''' -----------------------VARIABILITY HISTOGRAM --------------------------------------'''
 
-plt.hist(sources.field('Variability_Index'), bins=500)
+variab_index=sources.field('Variability_Index')
+plt.hist(variab_index[variab_index > -1], bins=500)
 plt.yscale('log')
 plt.xlim(0, 10000)
 plt.title('Variability Index Histogram')
 plt.savefig('Variability_Visualisation', dpi=300)
 plt.show()
 
-x = np.linspace(1, 8, 8)
+''' -----------------------PLOT FLUX HISTORY (10 YEARS) -------------------------------'''
+x = np.linspace(1, 10, 10)
 
 fig, axes = plt.subplots(2, 2, squeeze=False)
     
@@ -100,6 +105,12 @@ plt.savefig('Flux_History_Visualisation', dpi=300)
 plt.show()
 
 f_lat_data.close()
+
+''' -----------------------SPLIT DATA BY LABEL (BLL/FSRQ) ----------------------------'''
+
+
+dat = Table.read('gll_psc_v24.fit', format='fits')
+sources_pd = dat.to_pandas()
 
 
 '''-------------------------- TIMER ------------------------------------------------'''
