@@ -7,7 +7,26 @@ Created on Thu Nov  5 13:49:02 2020
 """
 from sklearn.pipeline import Pipeline
 from astropy.table import Table
+import pandas as pd
+from functions import functions
 
+# create first DataFrame
+df1 = pd.DataFrame({'rating': [90, 85, 82, 88, 94, 90, 76, 75],
+                    'points': [25, 20, 14, 16, 27, 20, 12, 15],
+                    'label': [1, 2, 3, 4, 5, 6, 7, 8]})
+df2 = pd.DataFrame({'assists': [5, 7, 7, 8, 5, 7],
+                    'rebounds': [11, 8, 10, 6, 6, 9],
+                    'label': [6, 3, 2, 7, 5, 10]})
+print(df1, df2)
+
+df_join = df1.merge(df2, how="outer", left_on='label', right_on='label')
+print(df_join)
+
+
+
+
+
+"""
 data = mycatalog.pdTable
 
 data["CLASS1"].value_counts()
@@ -42,3 +61,33 @@ def convert_multidimensions(cat):
     return data
 
 multidim = convert_multidimensions(mycatalog)
+
+#%% functions
+
+
+    blz_sc=[]
+    cat_bll=[]
+    cat_fsrq=[]
+    for i in range(self.Ns):
+        local_name=str(self.pdTable['ASSOC1'][i])
+        #if(local_name[4:].strip)
+
+def get_label_blazars(classes,
+                      negatives=["BLL", "bll"],
+                      positives=["FSRQ", "fsrq"]):
+
+
+    Parameters
+    ----------
+    classes : TYPE
+        DESCRIPTION.
+    negatives : TYPE, optional
+        DESCRIPTION. The default is ["BLL", "bll"].
+    positives : TYPE, optional
+        DESCRIPTION. The default is ["FSRQ", "fsrq"].
+
+    Returns
+    -------
+    None.
+
+"""  
