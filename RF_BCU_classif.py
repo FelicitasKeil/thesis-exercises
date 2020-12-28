@@ -21,10 +21,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_squared_error
 import functions
 
-
-start = timeit.default_timer()                                  #start program timer
-
-mycatalog = catalog('gll_psc_v24.fit', 1)                       #get Silvia's catalog class
+# start program timer
+start = timeit.default_timer()
+# get Silvia's catalog class
+mycatalog = catalog('gll_psc_v24.fit', 1)
 mycatalog()
 
 f_lat_data = fits.open('gll_psc_v24.fit')
@@ -33,19 +33,19 @@ sources_cols = f_lat_data[1].columns
 
 merged = functions.merge_catalogs('gll_psc_v26.fit', 'table_4LAC.fits')
 merged = merged[merged.GLON.notnull()]
-
-label=np.empty(mycatalog.Ns)                                    #create empty label array
+# create empty label array
+label = np.empty(mycatalog.Ns)
 class1 = mycatalog.feature('CLASS1').astype(str)
-
-for i in range(label.size):                                     #label BLL as 0, FSRQ as 1
+# label BLL as 0, FSRQ as 1
+for i in range(label.size):
     if class1[i].strip() == 'bll':
         label[i]=0
     elif class1[i].strip() == 'BLL':
-        label[i]=10
+        label[i]=0
     elif class1[i].strip() == 'fsrq':
         label[i]=1
     elif class1[i].strip() == 'FSRQ':
-        label[i] = 11
+        label[i] = 1
     # label BCUs as 2
     elif class1[i].strip() == 'BCU':
         label[i] = 2
@@ -53,16 +53,16 @@ for i in range(label.size):                                     #label BLL as 0,
         label[i] = 2
     else:
         label[i]=np.nan
-        
-hist_data = {'BZ_Class': label,                                 #DataFrame for histograms
+# DataFrame for histograms
+hist_data = {'BZ_Class': label,
              'PL_Index': mycatalog.feature('PL_Index'),
              'Variability_Index': mycatalog.feature('Variability_Index'),
              'Flux1000': mycatalog.feature('Flux1000')}
                               
 hist_pd = pd.DataFrame(hist_data, columns = ['BZ_Class', 'PL_Index',
                                              'Variability_Index', 'Flux1000'])
-
-hist_pd = hist_pd.astype(np.float32)                            #convert to avoid errors
+# convert to avoid errors
+hist_pd = hist_pd.astype(np.float32)
 
 merged['BZ_Class'] = label.tolist()
 # merged['nu_syn'] = merged['nu_syn'].fillna(0)
@@ -72,11 +72,11 @@ merged['BZ_Class'] = label.tolist()
 
 hist_pd = merged
 
-bll = hist_pd[hist_pd["BZ_Class"]==0]
+bll = hist_pd[hist_pd["BZ_Class"] == 0]
 bll_upper = hist_pd[hist_pd["BZ_Class"] == 10]
-fsrq = hist_pd[hist_pd["BZ_Class"]==1]
+fsrq = hist_pd[hist_pd["BZ_Class"] == 1]
 fsrq_upper = hist_pd[hist_pd["BZ_Class"] == 11]
-bcu = hist_pd[hist_pd["BZ_Class"]==2]
+bcu = hist_pd[hist_pd["BZ_Class"] == 2]
 
 plt.hist(bll["PL_Index"], bins='auto', label='BL Lacertae assoc.',
          color='green', fill=False, histtype='step')
@@ -112,24 +112,48 @@ plt.legend()
 plt.savefig('Var_Index_hist.png', dpi=300)
 plt.show()
 
-
-plt.hist(np.log10(bll["Flux1000"]), bins='auto',              #Integral Flux histogram
+# Integral Flux histogram
+plt.hist(np.log10(bll["Flux1000"]), bins='auto',
          label='BL Lacertae assoc.', color='green',
          fill=False, histtype='step')
-plt.hist(np.log10(bll_upper["Flux1000"]), bins='auto',              #Integral Flux histogram
-         label='BL Lacertae ident.', color='#9DDB8D')
+# plt.hist(np.log10(bll_upper["Flux1000"]), bins='auto',
+#          label='BL Lacertae ident.', color='#9DDB8D')
 plt.hist(np.log10(fsrq["Flux1000"]), bins='auto',
          label='FSRQs assoc.', color='blue',
          fill=False, histtype='step')
-plt.hist(np.log10(fsrq_upper["Flux1000"]), bins='auto',
-         label='FSRQs ident.', color='skyblue')
+# plt.hist(np.log10(fsrq_upper["Flux1000"]), bins='auto',
+#          label='FSRQs ident.', color='skyblue')
 plt.hist(np.log10(bcu["Flux1000"]), bins='auto',
          label='Unclassified Blazars', color='orange',
          fill=False, histtype='step')
+plt.yscale('log')
 plt.xlabel('log10 of Integral Flux in $cm^{-2}s^{-1}$')
 plt.ylabel('# of sources')
 plt.legend()
 plt.savefig('Flux_1000_hist.png', dpi=300)
+plt.show()
+
+# Plot Source Count Distribution
+
+counts, bins = np.histogram(np.log10(bll["Flux1000"]), bins=15)
+# bin width
+h = bins[1] - bins[0]
+# complete solid angle in deg^2
+sol_angle_full = 41252.96
+bin_middle = np.zeros(len(counts)-1)
+bin_middle_long = np.zeros(len(counts))
+dN_dS_S2 = np.empty(len(counts)-1)
+for i in range(len(counts)-1):
+    bin_middle[i] = (bins[i]+bins[i+1])/2
+    dN_dS_S2[i] = (counts[i+1]-counts[i])/h*10**(bin_middle[i])/sol_angle_full
+    bin_middle_long[i] = bin_middle[i]
+
+bin_middle_long[len(counts)-1] = (bins[len(counts)-1]+bins[len(counts)])/2
+# TODO: understand source count distr. better
+dN_dS_dO_S2 = np.multiply(counts, 10**bin_middle_long)/sol_angle_full
+plt.plot(bin_middle_long, dN_dS_dO_S2, '.')
+plt.show()
+plt.plot(bin_middle, dN_dS_S2, '.')
 plt.show()
 
 '''

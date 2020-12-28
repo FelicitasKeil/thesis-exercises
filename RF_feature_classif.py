@@ -171,11 +171,12 @@ sources_pd['nuFnu_syn'] = sources_pd['nuFnu_syn'].replace(0, np.nan)
 sources_pd['nuFnu_syn'] = sources_pd['nuFnu_syn'].fillna(median_nuFnu_syn)
 '''
 
-# drop features with missing entries
+# drop features with more than 10% missing entries
 for feature in sources_pd.columns:
     if sources_pd[feature].isna().sum() > 0.1 * len(sources_pd[feature]):
         sources_pd.drop(feature, axis=1, inplace=True)
 
+# drop irrelevatn features
 drop_cols = [col for col in sources_pd if col.startswith('ASSOC')]
 drop_cols = np.append(drop_cols,
                       ['Source_Name', 'SpectrumType', 'RA_Counterpart',
@@ -417,7 +418,7 @@ def forest_train(sources, nTrain, augmentation='smote'):
     acc[0] = accuracy_train
     acc[1] = accuracy_test
 
-    return rmse, acc, forest_clf
+    return rmse, acc, forest_clf, scaler
 
 
 # run 10 times to calculate errors
@@ -427,8 +428,8 @@ rmse_test = np.zeros(10)
 acc_test = np.zeros(10)
 
 for i in range(10):
-    rmse_i, acc_i, forest_clf = forest_train(sources_assoc, nTrain=i,
-                                             augmentation=None)
+    rmse_i, acc_i, forest_clf, scaler = forest_train(sources_assoc, nTrain=i,
+                                                     augmentation=None)
     rmse_train[i] = rmse_i[0]
     rmse_test[i] = rmse_i[1]
     acc_train[i] = acc_i[0]
@@ -448,8 +449,6 @@ sources_bcu = sources_pd[sources_pd.BZ_Class == 2]
 bcu_X = sources_bcu.drop(["BZ_Class"], axis=1)
 bcu_X = bcu_X.astype(np.float32)
 bcu_X = np.nan_to_num(bcu_X)
-
-scaler = StandardScaler()
 
 bcu_X_transf = scaler.transform(bcu_X)
 # predict class probabilities for the BCUs
@@ -477,10 +476,12 @@ bcu_index = bcu.reset_index()
 for i in range(len(bcu_index)):
     if bcu_index.iloc[i]['BZ_Class'] == 'fsrq':
         fsrq_list.append([bcu_index.iloc[i]['Source_Name'],
-                          bcu_index.iloc[i]['ASSOC1']])
+                          bcu_index.iloc[i]['ASSOC1'],
+                          bcu_probas[i, 1]])
     elif bcu_index.iloc[i]['BZ_Class'] == 'bll':
         bll_list.append([bcu_index.iloc[i]['Source_Name'],
-                         bcu_index.iloc[i]['ASSOC1']])
+                         bcu_index.iloc[i]['ASSOC1'],
+                         bcu_probas[i, 0]])
 
 
 # %% SCATTER PLOTS
