@@ -80,12 +80,12 @@ bcu = hist_pd[hist_pd["BZ_Class"] == 2]
 
 plt.hist(bll["PL_Index"], bins='auto', label='BL Lacertae assoc.',
          color='green', fill=False, histtype='step')
-plt.hist(bll_upper["PL_Index"], bins='auto', label='BL Lacertae ident.',
-         color='#9DDB8D')
+# plt.hist(bll_upper["PL_Index"], bins='auto', label='BL Lacertae ident.',
+#          color='#9DDB8D')
 plt.hist(fsrq["PL_Index"], bins='auto', label='FSRQs assoc.',
          color='blue', fill=False, histtype='step')
-plt.hist(fsrq_upper["PL_Index"], bins='auto', label='FSRQs ident.',
-         color='skyblue')
+# plt.hist(fsrq_upper["PL_Index"], bins='auto', label='FSRQs ident.',
+#          color='skyblue')
 plt.hist(bcu["PL_Index"], bins='auto', label='Unclassified Blazars',
          color='orange', fill=False, histtype='step')
 plt.xlabel('Power Law Photon Index')
@@ -97,12 +97,12 @@ plt.show()
 
 plt.hist(np.log10(bll["Variability_Index"]), bins = 'auto',     #Var Index histogram
          label='BL Lacertae assoc.', color='green', fill=False, histtype='step')
-plt.hist(np.log10(bll_upper["Variability_Index"]), bins = 'auto',
-         label='BL Lacertae ident.', color='#9DDB8D')
+# plt.hist(np.log10(bll_upper["Variability_Index"]), bins = 'auto',
+#          label='BL Lacertae ident.', color='#9DDB8D')
 plt.hist(np.log10(fsrq["Variability_Index"]), bins='auto',
          label='FSRQs assoc.', color='blue', fill=False, histtype='step')
-plt.hist(np.log10(fsrq_upper["Variability_Index"]), bins='auto',
-         label='FSRQs ident.', color='skyblue')
+# plt.hist(np.log10(fsrq_upper["Variability_Index"]), bins='auto',
+#          label='FSRQs ident.', color='skyblue')
 plt.hist(np.log10(bcu["Variability_Index"]), bins='auto', 
          label='Unclassified Blazars', 
          color='orange', fill=False, histtype='step')

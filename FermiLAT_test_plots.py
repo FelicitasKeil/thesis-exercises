@@ -64,9 +64,12 @@ axes[1,0].set_xscale('log')
 axes[1,0].set_yscale('log')
 axes[1,0].set_ylim([10**(-15), 10**(-7)])
 axes[1,0].set_title('PLEC Spectrum')
+
+axes[1, 1].axis('off')
 plt.tight_layout()
 plt.savefig('Spectral_Fits_Visualisation', dpi=300)
 plt.show()
+
 
 ''' -----------------------VARIABILITY HISTOGRAM --------------------------------------'''
 
@@ -86,19 +89,19 @@ fig, axes = plt.subplots(2, 2, squeeze=False)
 axes[0,0].errorbar(x, sources.field('Flux_History')[169])
 plt.xlabel('t in years (Observation 2008-2016')
 plt.ylabel('Photon Flux in cm^(-2) s^(-1)')
-axes[0,0].set_ylim([3*10**(-9), 8*10**(-8)])
+axes[0,0].set_ylim([0, 0.5*10**(-8)])
 axes[0,0].set_title('Identified BLL')
 
 axes[0,1].plot(x, sources.field('Flux_History')[64], c='red')
-axes[0,1].set_ylim([3*10**(-9), 8*10**(-8)])
+axes[0,1].set_ylim([0, 2*10**(-8)])
 axes[0,1].set_title('Identified FSRQ')
 
 axes[1,0].plot(x, sources.field('Flux_History')[2], c='green')
-axes[1,0].set_ylim([3*10**(-9), 8*10**(-8)])
+axes[1,0].set_ylim([0, 1*10**(-8)])
 axes[1,0].set_title('associated bll')
 
 axes[1,1].plot(x, sources.field('Flux_History')[3], c='purple')
-axes[1,1].set_ylim([3*10**(-9), 8*10**(-8)])
+axes[1,1].set_ylim([0, 2*10**(-8)])
 axes[1,1].set_title('associated fsrq')
 plt.tight_layout()
 plt.savefig('Flux_History_Visualisation', dpi=300)
@@ -109,8 +112,8 @@ f_lat_data.close()
 ''' -----------------------SPLIT DATA BY LABEL (BLL/FSRQ) ----------------------------'''
 
 
-dat = Table.read('gll_psc_v24.fit', format='fits')
-sources_pd = dat.to_pandas()
+# dat = Table.read('gll_psc_v24.fit', format='fits')
+# sources_pd = dat.to_pandas()
 
 
 '''-------------------------- TIMER ------------------------------------------------'''

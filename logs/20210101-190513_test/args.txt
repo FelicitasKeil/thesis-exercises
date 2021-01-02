@@ -1,0 +1,26 @@
+--add_static
+nu_syn
+nuFnu_syn
+network:
+RNN
+
+catalogue:
+gll_psc_v26.fit
+
+static variables:
+['nu_syn', 'nuFnu_syn']
+
+learning rate:
+0.001
+
+layers for series variables:
+1
+
+nodes per layer:
+8
+
+series variables:
+both
+
+seed: 
+101190513

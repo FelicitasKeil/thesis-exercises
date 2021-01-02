@@ -348,6 +348,7 @@ def forest_train(sources, nTrain, augmentation='smote'):
     forest_clf = RandomForestClassifier(criterion="entropy")
     forest_clf.fit(train_X_transf, train_Y)
 
+    # 10 fold cross validation
     y_probas_forest = cross_val_predict(forest_clf,
                                         train_X_transf, train_Y,
                                         cv=10, method="predict_proba")
@@ -421,13 +422,14 @@ def forest_train(sources, nTrain, augmentation='smote'):
     return rmse, acc, forest_clf, scaler
 
 
-# run 10 times to calculate errors
-rmse_train = np.zeros(10)
-acc_train = np.zeros(10)
-rmse_test = np.zeros(10)
-acc_test = np.zeros(10)
+train_count = 2
+# run multiple times to calculate errors
+rmse_train = np.zeros(train_count)
+acc_train = np.zeros(train_count)
+rmse_test = np.zeros(train_count)
+acc_test = np.zeros(train_count)
 
-for i in range(10):
+for i in range(train_count):
     rmse_i, acc_i, forest_clf, scaler = forest_train(sources_assoc, nTrain=i,
                                                      augmentation=None)
     rmse_train[i] = rmse_i[0]
@@ -486,23 +488,60 @@ for i in range(len(bcu_index)):
 
 # %% SCATTER PLOTS
 def scatter_plots(sources_pd):
+    file2 = 'logs\\20210101-190513_test\\final_predictions.npy'
+    pred = np.load(file2)
+    new_class_data = {'BZ_Class': pred[:, 12-2],
+                      'Source_Name': pred[:, 0],
+                      'Assoc': pred[:, 1],
+                      'RA_J2000': pred[:, 2],
+                      'DE_J2000': pred[:, 3],
+                      'Variability_Index': pred[:, 4],
+                      'PL_Flux_Density': pred[:, 5],
+                      'Flux1000': pred[:, 6],
+                      'Pivot_Energy': pred[:, 7],
+                      'Signif_Avg': pred[:, 8],
+                      'PL_Index': pred[:, 9],
+                      'Class_Prob': pred[:, 12-1]}
+
+    new_class = pd.DataFrame(new_class_data, columns=['BZ_Class',
+                                                      'Source_Name', 'Assoc',
+                                                      'RA_J2000', 'DE_J2000',
+                                                      'Variability_Index',
+                                                      'PL_Flux_Density',
+                                                      'Flux1000',
+                                                      'Pivot_Energy',
+                                                      'Signif_Avg', 'PL_Index',
+                                                      'Class_Prob'])
+
+    new_class['RA_J2000'] = new_class['RA_J2000'].astype(float)
+    new_class['DE_J2000'] = new_class['DE_J2000'].astype(float)
+    new_class['Variability_Index'] = new_class['Variability_Index'].astype(float)
+    new_class['PL_Flux_Density'] = new_class['PL_Flux_Density'].astype(float)
+    new_class['Flux1000'] = new_class['Flux1000'].astype(float)
+    new_class['Pivot_Energy'] = new_class['Pivot_Energy'].astype(float)
+    new_class['Signif_Avg'] = new_class['Signif_Avg'].astype(float)
+    new_class['PL_Index'] = new_class['PL_Index'].astype(float)
+
+    bll_new = new_class[new_class["BZ_Class"] == 'bll']
+    fsrq_new = new_class[new_class["BZ_Class"] == 'fsrq']
     bll = sources_pd[sources_pd["BZ_Class"] == 0]
-    # bll_upper = sources_pd[sources_pd["BZ_Class"] == 10]
     fsrq = sources_pd[sources_pd["BZ_Class"] == 1]
-    # fsrq_upper = sources_pd[sources_pd["BZ_Class"] == 11]
-    bcu = sources_pd[sources_pd["BZ_Class"] == 2]
+    # bcu = sources_pd[sources_pd["BZ_Class"] == 2]
 
     # Scatter PL_Ind vs. Variab
     plt.scatter(np.log10(bll["PL_Flux_Density"]),
                 np.log10(bll["Variability_Index"]),
-                label='BL Lacs assoc.', color='green', edgecolors='none',
+                label='BL Lacs (4FGL)', color='green', edgecolors='none',
                 alpha=0.5, marker='.')
     plt.scatter(np.log10(fsrq["PL_Flux_Density"]),
-                np.log10(fsrq["Variability_Index"]), label='FSRQs assoc.',
+                np.log10(fsrq["Variability_Index"]), label='FSRQs (4FGL)',
                 color='red', edgecolors='none', alpha=0.5, marker='.')
-    plt.scatter(np.log10(bcu["PL_Flux_Density"]),
-                np.log10(bcu["Variability_Index"]), label='BCUs',
-                color='orange', edgecolors='none', alpha=0.35, marker='.')
+    plt.scatter(np.log10(bll_new["PL_Flux_Density"]),
+                np.log10(bll_new["Variability_Index"]), label='BL Lacs (NN)',
+                color='orange', edgecolors='none', alpha=0.5, marker='.')
+    plt.scatter(np.log10(fsrq_new["PL_Flux_Density"]),
+                np.log10(fsrq_new["Variability_Index"]), label='FSRQs (NN)',
+                color='purple', edgecolors='none', alpha=0.5, marker='.')
     plt.xlabel('$log_{10}$ Differential Flux at Pivot Energy in $cm^{-2}MeV^{-1}s^{-1}$')
     plt.ylabel('$log_{10}$ of Variability Index')
     plt.legend()
@@ -511,36 +550,45 @@ def scatter_plots(sources_pd):
 
     # Pivot_E vs. Signif
     plt.scatter(np.log10(bll["Pivot_Energy"]), np.log10(bll["Signif_Avg"]),
-                label='BL Lacs', color='green', edgecolors='none',
+                label='BL Lacs (4FGL)', color='green', edgecolors='none',
                 alpha=0.5, marker='.')
     plt.scatter(np.log10(fsrq["Pivot_Energy"]), np.log10(fsrq["Signif_Avg"]),
-                label='FSRQs', color='red', edgecolors='none',
+                label='FSRQs (4FGL)', color='red', edgecolors='none',
                 alpha=0.5, marker='.')
-    plt.scatter(np.log10(bcu["Pivot_Energy"]), np.log10(bcu["Signif_Avg"]),
-                label='BCUs', color='orange', edgecolors='none',
-                alpha=0.35, marker='.')
+    plt.scatter(np.log10(bll_new["Pivot_Energy"]),
+                np.log10(bll_new["Signif_Avg"]),
+                label='BL Lacs (NN)', color='orange', edgecolors='none',
+                alpha=0.5, marker='.')
+    plt.scatter(np.log10(fsrq_new["Pivot_Energy"]),
+                np.log10(fsrq_new["Signif_Avg"]),
+                label='FSRQs (NN)', color='purple', edgecolors='none',
+                alpha=0.5, marker='.')
     plt.xlabel('log10 of Pivot Energy in MeV')
-    plt.ylabel('log10 of Source Significance in $\sigma$')
+    plt.ylabel('log10 of Source Significance in $ \sigma$')
     plt.legend()
     plt.savefig('Pivot_E_Signif_scatter.png', dpi=300)
     plt.show()
 
     # int flux vs. latitude
     plt.scatter(np.log10(bll["Flux1000"]), bll["PL_Index"],
-                label='BL Lacs', color='green', edgecolors='none',
+                label='BL Lacs (4FGL)', color='green', edgecolors='none',
                 alpha=0.5, marker='.')
     plt.scatter(np.log10(fsrq["Flux1000"]), fsrq["PL_Index"],
-                label='FSRQs', color='red', edgecolors='none',
+                label='FSRQs (4FGL)', color='red', edgecolors='none',
                 alpha=0.5, marker='.')
-    plt.scatter(np.log10(bcu["Flux1000"]), bcu["PL_Index"],
-                label='BCUs', color='orange', edgecolors='none',
-                alpha=0.35, marker='.')
+    plt.scatter(np.log10(bll_new["Flux1000"]), bll_new["PL_Index"],
+                label='BL Lacs (NN)', color='orange', edgecolors='none',
+                alpha=0.5, marker='.')
+    plt.scatter(np.log10(fsrq_new["Flux1000"]), fsrq_new["PL_Index"],
+                label='FSRQs (NN)', color='purple', edgecolors='none',
+                alpha=0.5, marker='.')
     plt.xlabel('$log_{10}$ of Integral photon flux in $cm^{-2}s^{-1}$')
     plt.ylabel('Power Law Photon Index')
     plt.legend()
     plt.savefig('Flux_PL_Index_scatter.png', dpi=300)
     plt.show()
 
+scatter_plots(sources_pd)
 
 # %% TIMER
 stop = timeit.default_timer()
